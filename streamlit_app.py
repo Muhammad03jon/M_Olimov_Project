@@ -11,10 +11,9 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from catboost import CatBoostClassifier
-from sklearn.metrics import classification_report, confusion_matrix, roc_curve, auc
-import joblib
+from sklearn.metrics import classification_report, confusion_matrix, roc_curve, auc, accuracy_score, precision_score, recall_score, f1_score
 
-st.title('\U0001F4B5 Предсказание идеального тарифа для клиента')
+st.title('📞 Предсказание идеального тарифа для клиента')
 
 # Загрузка данных
 data_url = "https://raw.githubusercontent.com/your-dataset.csv"
@@ -129,14 +128,51 @@ if st.button("Предсказать"):
     input_df = encoder.transform(input_df)
     input_df = scaler.transform(input_df)
     prediction = model.predict(input_df)[0]
+    prediction_prob = model.predict_proba(input_df)[0]
+    
     st.subheader("🔮 Идеальный тариф: ")
     st.write(prediction)
 
-# Визуализация важности признаков для CatBoost
-if model_choice == "CatBoost":
-    importance = model.get_feature_importance()
+    # Вывод вероятностей для всех классов (если модель поддерживает predict_proba)
+    st.subheader("Предсказанные вероятности для каждого тарифа:")
+    for i, prob in enumerate(prediction_prob):
+        st.write(f"Тариф {i}: {prob:.2f}")
+
+    # Визуализация важности признаков для CatBoost
+    if model_choice == "CatBoost":
+        importance = model.get_feature_importance()
+        fig, ax = plt.subplots()
+        ax.barh(X_raw.columns, importance)
+        ax.set_xlabel('Важность признаков')
+        ax.set_title('Важность признаков для CatBoost')
+        st.pyplot(fig)
+
+# Визуализация и вывод метрик после обучения модели
+if st.button("Метрики модели"):
+    # Предсказания на тестовом наборе
+    y_pred = model.predict(X_test_scaled)
+    y_pred_prob = model.predict_proba(X_test_scaled)
+    
+    # Вычисление метрик
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred, average='weighted')
+    recall = recall_score(y_test, y_pred, average='weighted')
+    f1 = f1_score(y_test, y_pred, average='weighted')
+    roc_auc = auc(roc_curve(y_test, y_pred_prob, multi_class='ovr')[0], roc_curve(y_test, y_pred_prob, multi_class='ovr')[1])
+    
+    # Вывод метрик
+    st.subheader("Метрики модели:")
+    st.write(f"Accuracy: {accuracy:.2f}")
+    st.write(f"Precision: {precision:.2f}")
+    st.write(f"Recall: {recall:.2f}")
+    st.write(f"F1-Score: {f1:.2f}")
+    st.write(f"ROC-AUC: {roc_auc:.2f}")
+    
+    # Вывод confusion matrix
+    cm = confusion_matrix(y_test, y_pred)
+    st.subheader("Confusion Matrix:")
     fig, ax = plt.subplots()
-    ax.barh(X_raw.columns, importance)
-    ax.set_xlabel('Важность признаков')
-    ax.set_title('Важность признаков для CatBoost')
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=np.unique(y_test), yticklabels=np.unique(y_test))
+    ax.set_xlabel('Предсказанные метки')
+    ax.set_ylabel('Истинные метки')
     st.pyplot(fig)
