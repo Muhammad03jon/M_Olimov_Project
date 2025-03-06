@@ -11,9 +11,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, roc_curve, auc
-import joblib
 
-st.title('\U0001F4B5 Предсказание идеального тарифа для клиента')
+st.title('Предсказание идеального тарифа для клиента')
 
 # Загрузка данных
 data_url = "https://raw.githubusercontent.com/your-dataset.csv"
