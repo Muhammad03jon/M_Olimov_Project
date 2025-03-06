@@ -10,13 +10,17 @@ from category_encoders import TargetEncoder
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, confusion_matrix, roc_curve, auc, accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import classification_report, confusion_matrix, roc_curve, auc
+import joblib
 
-st.title('Предсказание идеального тарифа для клиента')
+st.title('📞 Предсказание идеального тарифа для клиента')
 
 # Загрузка данных
 data_url = "https://raw.githubusercontent.com/Muhammad03jon/M_Olimov_Project/refs/heads/master/data.csv"
 df = pd.read_csv(data_url)
+
+# Словарь для преобразования числовых значений в соответствующие классы
+class_mapping = {0: 'Low', 1: 'Medium', 2: 'High'}
 
 # Вывод исходных данных
 with st.expander('Исходные данные'):
@@ -27,11 +31,14 @@ with st.expander('Исходные данные'):
         st.dataframe(X_raw)
     with col2:
         st.subheader("y (Целевая переменная)")
-        y_raw = df['ideal_plan']
+        y_raw = df['ideal_plan']  # Переход от строковых значений к числам
         st.dataframe(y_raw.to_frame())
 
+# Преобразуем целевую переменную для обучения
+df['ideal_plan'] = df['ideal_plan'].map({'Low': 0, 'Medium': 1, 'High': 2})
+
 # Разделение данных
-X_train, X_test, y_train, y_test = train_test_split(X_raw, y_raw, test_size=0.3, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X_raw, df['ideal_plan'], test_size=0.3, random_state=42)
 
 # Кодирование категориальных признаков
 categorical_features = X_raw.select_dtypes(include=['object']).columns
@@ -55,12 +62,10 @@ with st.sidebar:
         model = DecisionTreeClassifier()
     elif model_choice == "Random Forest":
         model = RandomForestClassifier()
-
+    
     model.fit(X_train_scaled, y_train)
 
 # Ввод пользовательских данных
-st.title("📞 Предсказание идеального тарифа")
-
 st.sidebar.header("Введите данные клиента")
 
 # Пол пользователя
@@ -124,40 +129,49 @@ if st.button("Предсказать"):
     input_df = pd.DataFrame([input_data])
     input_df = encoder.transform(input_df)
     input_df = scaler.transform(input_df)
+    
     prediction = model.predict(input_df)[0]
-    prediction_prob = model.predict_proba(input_df)[0]
-    
-    # Вывод предсказания и вероятностей
-    st.subheader("🔮 Идеальный тариф: ")
-    st.write(prediction)
-    
-    st.subheader("Предсказанные вероятности для каждого тарифа:")
-    for i, prob in enumerate(prediction_prob):
-        st.write(f"Тариф {i}: {prob:.2f}")
+    predicted_class = class_mapping[prediction]  # Получаем строковое значение из числа
 
-# Вывод метрик
-if st.button("Метрики модели"):
-    y_pred = model.predict(X_test_scaled)
-    
-    # Метрики
-    accuracy = model.score(X_test_scaled, y_test)
-    precision = classification_report(y_test, y_pred, output_dict=True)["accuracy"]
-    recall = classification_report(y_test, y_pred, output_dict=True)["macro avg"]["recall"]
-    f1 = classification_report(y_test, y_pred, output_dict=True)["macro avg"]["f1-score"]
-    roc_auc = auc(*roc_curve(y_test, model.predict_proba(X_test_scaled)[:, 1])[:2])
-    
-    st.subheader("Метрики модели:")
-    st.write(f"Accuracy: {accuracy:.2f}")
-    st.write(f"Precision: {precision:.2f}")
-    st.write(f"Recall: {recall:.2f}")
-    st.write(f"F1-score: {f1:.2f}")
-    st.write(f"ROC AUC Score: {roc_auc:.2f}")
-    
-    # Матрица ошибок
-    cm = confusion_matrix(y_test, y_pred)
+    st.subheader("🔮 Идеальный тариф: ")
+    st.write(predicted_class)
+
+    # Если модель поддерживает вероятности для каждого класса
+    if model_choice in ["Logistic Regression", "Random Forest", "Decision Tree"]:
+        prediction_prob = model.predict_proba(input_df)[0]
+        st.write("Предсказанные вероятности для каждого тарифа:")
+        for i, prob in enumerate(prediction_prob):
+            st.write(f"Тариф {class_mapping[i]}: {prob:.2f}")
+
+# Визуализация важности признаков для дерева решений или случайного леса
+if model_choice in ["Decision Tree", "Random Forest"]:
+    importance = model.feature_importances_
     fig, ax = plt.subplots()
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
-    ax.set_xlabel('Предсказано')
-    ax.set_ylabel('Истинно')
-    ax.set_title('Матрица ошибок')
+    ax.barh(X_raw.columns, importance)
+    ax.set_xlabel('Важность признаков')
+    ax.set_title(f'Важность признаков для {model_choice}')
     st.pyplot(fig)
+
+# Отображение метрик
+if st.button("Метрики"):
+    y_pred = model.predict(X_test_scaled)
+    y_pred_proba = model.predict_proba(X_test_scaled)
+    
+    st.subheader("📊 Метрики модели")
+
+    # Вывод метрик
+    st.write("Точность (Accuracy):", model.score(X_test_scaled, y_test))
+    st.write("Прецизионность (Precision):", classification_report(y_test, y_pred, target_names=list(class_mapping.values())))
+    st.write("Полнота (Recall):", classification_report(y_test, y_pred, target_names=list(class_mapping.values())))
+    st.write("F1-Score:", classification_report(y_test, y_pred, target_names=list(class_mapping.values())))
+
+    # ROC-AUC
+    fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba[:, 1], pos_label=1)
+    roc_auc = auc(fpr, tpr)
+    st.write(f"ROC AUC: {roc_auc:.2f}")
+
+    # Матрица ошибок
+    st.subheader("Confusion Matrix:")
+    cm = confusion_matrix(y_test, y_pred)
+    sns.heatmap(cm, annot=True, fmt='d', cmap="Blues", xticklabels=list(class_mapping.values()), yticklabels=list(class_mapping.values()))
+    st.pyplot()
