@@ -45,7 +45,7 @@ if df.isnull().any().any():
 df['ideal_plan'] = df['ideal_plan'].map({'Low': 0, 'Medium': 1, 'High': 2})
 
 # Разделение данных
-X_train, X_test, y_train, y_test = train_test_split(X_raw, df['ideal_plan'], test_size=0.3, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X_raw, df['ideal_plan'], test_size=0.2, random_state=42)
 
 # Кодирование категориальных признаков
 categorical_features = X_raw.select_dtypes(include=['object']).columns
