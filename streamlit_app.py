@@ -34,6 +34,13 @@ with st.expander('Исходные данные'):
         y_raw = df['ideal_plan']  # Переход от строковых значений к числам
         st.dataframe(y_raw.to_frame())
 
+# Проверка на пропуски в данных
+if df.isnull().any().any():
+    st.warning("В данных присутствуют пропущенные значения. Выполняется их заполнение.")
+    # Заполнение пропусков: числовые признаки - средним значением, категориальные - наиболее частым значением
+    df = df.fillna(df.mean(numeric_only=True))
+    df = df.apply(lambda x: x.fillna(x.mode()[0]) if x.dtype == 'object' else x, axis=0)
+
 # Преобразуем целевую переменную для обучения
 df['ideal_plan'] = df['ideal_plan'].map({'Low': 0, 'Medium': 1, 'High': 2})
 
