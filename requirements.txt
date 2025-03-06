@@ -1,8 +1,8 @@
-streamlit>=1.26.0
+streamlit
 pandas
 numpy
 matplotlib
 seaborn
 scikit-learn
+category-encoders
 catboost
-category_encoders
