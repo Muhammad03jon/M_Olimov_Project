@@ -165,17 +165,17 @@ if st.button("Метрики"):
     
     st.subheader("📊 Метрики модели")
 
-    # Вывод метрик
-    accuracy = model.score(X_test_scaled, y_test)
-    precision = precision_score(y_test, y_pred, average=None)
-    recall = recall_score(y_test, y_pred, average=None)
-    f1 = f1_score(y_test, y_pred, average=None)
+    # Вывод точности для обучающего и тестового наборов
+    accuracy_train = model.score(X_train_scaled, y_train)
+    accuracy_test = model.score(X_test_scaled, y_test)
+    st.write(f"Точность на обучающем наборе: {accuracy_train:.2f}")
+    st.write(f"Точность на тестовом наборе: {accuracy_test:.2f}")
     
-    st.write("Точность (Accuracy):", accuracy)
-    for i, label in enumerate(class_mapping.values()):
-        st.write(f"Прецизионность для {label}: {precision[i]:.2f}")
-        st.write(f"Полнота для {label}: {recall[i]:.2f}")
-        st.write(f"F1-Оценка для {label}: {f1[i]:.2f}")
+    # Вывод метрик для каждого класса
+    classification_rep = classification_report(y_test, y_pred, target_names=list(class_mapping.values()), output_dict=True)
+    class_df = pd.DataFrame(classification_rep).transpose()
+    st.write("Метрики для каждого класса:")
+    st.dataframe(class_df)
 
     # ROC-AUC
     fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba[:, 1], pos_label=1)
@@ -185,5 +185,8 @@ if st.button("Метрики"):
     # Матрица ошибок
     st.subheader("Confusion Matrix:")
     cm = confusion_matrix(y_test, y_pred)
+    fig, ax = plt.subplots()
     sns.heatmap(cm, annot=True, fmt='d', cmap="Blues", xticklabels=list(class_mapping.values()), yticklabels=list(class_mapping.values()))
-    st.pyplot()
+    ax.set_title('Матрица ошибок')
+    st.pyplot(fig)
+
