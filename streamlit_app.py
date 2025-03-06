@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.compose import ColumnTransformer
 from category_encoders import TargetEncoder
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
@@ -167,10 +166,16 @@ if st.button("Метрики"):
     st.subheader("📊 Метрики модели")
 
     # Вывод метрик
-    st.write("Точность (Accuracy):", model.score(X_test_scaled, y_test))
-    st.write("Прецизионность (Precision):", classification_report(y_test, y_pred, target_names=list(class_mapping.values())))
-    st.write("Полнота (Recall):", classification_report(y_test, y_pred, target_names=list(class_mapping.values())))
-    st.write("F1-Score:", classification_report(y_test, y_pred, target_names=list(class_mapping.values())))
+    accuracy = model.score(X_test_scaled, y_test)
+    precision = precision_score(y_test, y_pred, average=None)
+    recall = recall_score(y_test, y_pred, average=None)
+    f1 = f1_score(y_test, y_pred, average=None)
+    
+    st.write("Точность (Accuracy):", accuracy)
+    for i, label in enumerate(class_mapping.values()):
+        st.write(f"Прецизионность для {label}: {precision[i]:.2f}")
+        st.write(f"Полнота для {label}: {recall[i]:.2f}")
+        st.write(f"F1-Оценка для {label}: {f1[i]:.2f}")
 
     # ROC-AUC
     fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba[:, 1], pos_label=1)
