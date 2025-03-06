@@ -16,7 +16,7 @@ from sklearn.metrics import classification_report, confusion_matrix, roc_curve, 
 st.title('📞 Предсказание идеального тарифа для клиента')
 
 # Загрузка данных
-data_url = "https://raw.githubusercontent.com/your-dataset.csv"
+data_url = "https://raw.githubusercontent.com/Muhammad03jon/M_Olimov_Project/refs/heads/master/data.csv"
 df = pd.read_csv(data_url)
 
 # Вывод исходных данных
