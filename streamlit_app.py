@@ -10,12 +10,12 @@ from category_encoders import TargetEncoder
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, confusion_matrix, roc_curve, auc
+from sklearn.metrics import classification_report, confusion_matrix, roc_curve, auc, accuracy_score, precision_score, recall_score, f1_score
 
 st.title('Предсказание идеального тарифа для клиента')
 
 # Загрузка данных
-data_url = "https://raw.githubusercontent.com/your-dataset.csv"
+data_url = "https://raw.githubusercontent.com/Muhammad03jon/M_Olimov_Project/refs/heads/master/data.csv"
 df = pd.read_csv(data_url)
 
 # Вывод исходных данных
