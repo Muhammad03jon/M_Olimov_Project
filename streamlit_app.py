@@ -51,14 +51,14 @@ X_test_scaled = scaler.transform(X_test)
 oversampler = RandomOverSampler(random_state=42)
 X_train_scaled, y_train = oversampler.fit_resample(X_train_scaled, y_train)
 
-# Выбор модели и гиперпараметров для Random Forest
-param_grid = {
-    "n_estimators": [50, 80],
-    "max_depth": [3, 5, 10],
-    "min_samples_split": [2, 5, 10],
-    "min_samples_leaf": [1, 3, 5]
-}
-best_model = RandomForestClassifier(class_weight='balanced','max_depth': 6, 'min_samples_leaf': 3, 'min_samples_split': 10, 'n_estimators': 50 random_state=42)
+best_model = RandomForestClassifier(best_model = RandomForestClassifier(
+    class_weight='balanced',
+    max_depth=6, 
+    min_samples_leaf=3, 
+    min_samples_split=10, 
+    n_estimators=50,
+    random_state=42
+)
 
 # Обучаем модель
 best_model.fit(X_train_scaled, y_train)
