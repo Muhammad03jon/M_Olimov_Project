@@ -8,7 +8,6 @@ from sklearn.preprocessing import StandardScaler
 from category_encoders import TargetEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, accuracy_score, precision_score, recall_score, f1_score
-from sklearn.model_selection import GridSearchCV
 from imblearn.over_sampling import RandomOverSampler
 
 st.title('📞 Предсказание идеального тарифа для клиента')
@@ -31,13 +30,6 @@ with st.expander('Исходные данные'):
         st.subheader("y (Целевая переменная)")
         y_raw = df['ideal_plan']  # Переход от строковых значений к числам
         st.dataframe(y_raw.to_frame())
-
-# Проверка на пропуски в данных
-if df.isnull().any().any():
-    st.warning("В данных присутствуют пропущенные значения. Выполняется их заполнение.")
-    # Заполнение пропусков: числовые признаки - средним значением, категориальные - наиболее частым значением
-    df = df.fillna(df.mean(numeric_only=True))
-    df = df.apply(lambda x: x.fillna(x.mode()[0]) if x.dtype == 'object' else x, axis=0)
 
 # Преобразуем целевую переменную для обучения
 df['ideal_plan'] = df['ideal_plan'].map({'Low': 0, 'Medium': 1, 'High': 2})
@@ -66,19 +58,9 @@ param_grid = {
     "min_samples_split": [2, 5, 10],
     "min_samples_leaf": [1, 3, 5]
 }
-model = RandomForestClassifier(class_weight='balanced', random_state=42)
+best_model = RandomForestClassifier(class_weight='balanced','max_depth': 6, 'min_samples_leaf': 3, 'min_samples_split': 10, 'n_estimators': 50 random_state=42)
 
-# GridSearchCV
-grid_search = GridSearchCV(model, param_grid, cv=5, scoring="accuracy", n_jobs=-1)
-grid_search.fit(X_train_scaled, y_train)
-
-# лучший модель
-best_model = grid_search.best_estimator_
-
-# Лучшие параметры
-st.write("**Лучшие параметры для Random Forest:**", grid_search.best_params_)
-
-# Обучаем модель с лучшими параметрами
+# Обучаем модель
 best_model.fit(X_train_scaled, y_train)
 
 # Ввод данных
