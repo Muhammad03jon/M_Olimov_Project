@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from category_encoders import TargetEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, accuracy_score, precision_score, recall_score, f1_score
-from imblearn.over_sampling import RandomOverSampler
+#from imblearn.over_sampling import RandomOverSampler
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 
 st.title('📞 Предсказание идеального тарифа для клиента')
@@ -50,8 +50,8 @@ scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-oversampler = RandomOverSampler(random_state=42)
-X_train_scaled, y_train = oversampler.fit_resample(X_train_scaled, y_train)
+#oversampler = RandomOverSampler(random_state=42)
+#X_train_scaled, y_train = oversampler.fit_resample(X_train_scaled, y_train)
 
 best_model = RandomForestClassifier(
     class_weight='balanced',
