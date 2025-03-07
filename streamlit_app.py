@@ -176,14 +176,14 @@ if st.button("Метрики"):
     sns.heatmap(cm, annot=True, fmt='d', cmap="Blues", xticklabels=['Low', 'Medium', 'High'], yticklabels=['Low', 'Medium', 'High'])
     ax.set_title('Матрица ошибок')
     st.pyplot(fig)
-# Создаём объект StratifiedKFold
-skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-
-# Используем кросс-валидацию
-cv_scores = cross_val_score(best_model, X_train_scaled, y_train, cv=skf, scoring='accuracy')
-
-# Выводим результаты
-st.subheader("📊 Результаты кросс-валидации")
-st.write(f"Средняя точность (Accuracy): {cv_scores.mean():.4f}")
-st.write(f"Стандартное отклонение: {cv_scores.std():.4f}")
-st.write("Результаты по фолдам:", cv_scores)
+    # Создаём объект StratifiedKFold
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    
+    # Используем кросс-валидацию
+    cv_scores = cross_val_score(best_model, X_train_scaled, y_train, cv=skf, scoring='accuracy')
+    
+    # Выводим результаты
+    st.subheader("📊 Результаты кросс-валидации")
+    st.write(f"Средняя точность (Accuracy): {cv_scores.mean():.4f}")
+    st.write(f"Стандартное отклонение: {cv_scores.std():.4f}")
+    st.write("Результаты по фолдам:", cv_scores)
