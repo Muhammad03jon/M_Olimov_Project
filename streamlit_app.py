@@ -63,11 +63,11 @@ with st.sidebar:
     model_choice = st.selectbox("Выберите модель:", ["Logistic Regression", "Decision Tree", "Random Forest"])
     
     if model_choice == "Logistic Regression":
-        model = LogisticRegression(multi_class='multinomial', solver='lbfgs')
+        model = LogisticRegression(multi_class='multinomial', solver='lbfgs', penalty='elasticnet', l1_ratio=0.5)
     elif model_choice == "Decision Tree":
-        model = DecisionTreeClassifier()
+        model = DecisionTreeClassifier(max_depth=3, min_samples_split=10, min_samples_leaf=5)
     elif model_choice == "Random Forest":
-        model = RandomForestClassifier()
+        model = RandomForestClassifier(n_estimators=100, max_depth=10, min_samples_split=10, min_samples_leaf=5, random_state=42)
     
     model.fit(X_train_scaled, y_train)
 
