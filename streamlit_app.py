@@ -6,8 +6,6 @@ import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from category_encoders import TargetEncoder
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import GridSearchCV
@@ -57,52 +55,27 @@ scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-# Выбор модели и гиперпараметров
-with st.sidebar:
-    st.header("Выбор модели")
-    model_choice = st.selectbox("Выберите модель:", ["Logistic Regression", "Decision Tree", "Random Forest"])
-    
-    # Определение сетки параметров
-    param_grid = {}
-    
-    if model_choice == "Logistic Regression":
-        param_grid = {
-            "C": [0.01, 0.1, 1, 10],
-            "solver": ["lbfgs", "saga"],
-            "max_iter": [100, 300, 500]
-        }
-        model = LogisticRegression(multi_class='multinomial', penalty='l2')
-    
-    elif model_choice == "Decision Tree":
-        param_grid = {
-            "max_depth": [5, 10, 15],
-            "min_samples_split": [2, 5, 10],
-            "min_samples_leaf": [1, 3, 5],
-            "class_weight": ["balanced", None]
-        }
-        model = DecisionTreeClassifier()
-    
-    elif model_choice == "Random Forest":
-        param_grid = {
-            "n_estimators": [50, 100, 200],
-            "max_depth": [5, 10, 15],
-            "min_samples_split": [2, 5, 10],
-            "min_samples_leaf": [1, 3, 5]
-        }
-        model = RandomForestClassifier(random_state=42)
-    
-    # Запуск GridSearchCV
-    grid_search = GridSearchCV(model, param_grid, cv=5, scoring="accuracy", n_jobs=-1)
-    grid_search.fit(X_train_scaled, y_train)
-    
-    # Берем лучшую модель
-    best_model = grid_search.best_estimator_
-    
-    # Выводим лучшие параметры
-    st.write(f"**Лучшие параметры для {model_choice}:**", grid_search.best_params_)
-    
-    # Обучаем модель с лучшими параметрами
-    best_model.fit(X_train_scaled, y_train)
+# Выбор модели и гиперпараметров для Random Forest
+param_grid = {
+    "n_estimators": [50, 100, 200],
+    "max_depth": [5, 10, 15],
+    "min_samples_split": [2, 5, 10],
+    "min_samples_leaf": [1, 3, 5]
+}
+model = RandomForestClassifier(random_state=42)
+
+# Запуск GridSearchCV
+grid_search = GridSearchCV(model, param_grid, cv=5, scoring="accuracy", n_jobs=-1)
+grid_search.fit(X_train_scaled, y_train)
+
+# Берем лучшую модель
+best_model = grid_search.best_estimator_
+
+# Выводим лучшие параметры
+st.write("**Лучшие параметры для Random Forest:**", grid_search.best_params_)
+
+# Обучаем модель с лучшими параметрами
+best_model.fit(X_train_scaled, y_train)
 
 # Ввод пользовательских данных
 st.sidebar.header("Введите данные клиента")
@@ -176,11 +149,10 @@ if st.button("Предсказать"):
     st.write(predicted_class)
 
     # Если модель поддерживает вероятности для каждого класса
-    if model_choice in ["Logistic Regression", "Random Forest", "Decision Tree"]:
-        prediction_prob = best_model.predict_proba(input_df)[0]
-        st.write("Предсказанные вероятности для каждого тарифа:")
-        for i, prob in enumerate(prediction_prob):
-            st.write(f"Тариф {class_mapping[i]}: {prob:.2f}")
+    prediction_prob = best_model.predict_proba(input_df)[0]
+    st.write("Предсказанные вероятности для каждого тарифа:")
+    for i, prob in enumerate(prediction_prob):
+        st.write(f"Тариф {class_mapping[i]}: {prob:.2f}")
 
 # Отображение метрик
 if st.button("Метрики"):
@@ -226,5 +198,3 @@ if st.button("Метрики"):
     sns.heatmap(cm, annot=True, fmt='d', cmap="Blues", xticklabels=['Low', 'Medium', 'High'], yticklabels=['Low', 'Medium', 'High'])
     ax.set_title('Матрица ошибок')
     st.pyplot(fig)
-
-
