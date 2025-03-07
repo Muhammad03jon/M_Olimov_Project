@@ -151,40 +151,35 @@ if st.button("Предсказать"):
 
 # Отображение метрик
 if st.button("Метрики"):
-    y_pred = model.predict(X_test_scaled)
-    y_pred_proba = model.predict_proba(X_test_scaled)
-    
+    y_pred_train = model.predict(X_train_scaled)
+    y_pred_test = model.predict(X_test_scaled)
+
+    y_pred_proba_train = model.predict_proba(X_train_scaled)
+    y_pred_proba_test = model.predict_proba(X_test_scaled)
+
     st.subheader("📊 Метрики модели")
 
-    # Точность для обучающего и тестового наборов
-    accuracy_train = accuracy_score(y_train, model.predict(X_train_scaled))
-    accuracy_test = accuracy_score(y_test, y_pred)
-    st.write(f"Точность на обучающем наборе: {accuracy_train:.2f}")
-    st.write(f"Точность на тестовом наборе: {accuracy_test:.2f}")
-    
-    # ROC-AUC
-    fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba[:, 1], pos_label=1)
-    roc_auc = auc(fpr, tpr)
-    st.write(f"ROC AUC на тестовом наборе: {roc_auc:.2f}")
+    # Accuracy для обучения и теста
+    accuracy_train = model.score(X_train_scaled, y_train)
+    accuracy_test = model.score(X_test_scaled, y_test)
+    st.write(f"**Точность (Accuracy) на обучающем наборе:** {accuracy_train:.2f}")
+    st.write(f"**Точность (Accuracy) на тестовом наборе:** {accuracy_test:.2f}")
 
-    # Метрики для каждого класса: Precision, Recall, F1-Score
-    precision_low = precision_score(y_test, y_pred, labels=[0], average=None)[0]
-    recall_low = recall_score(y_test, y_pred, labels=[0], average=None)[0]
-    f1_low = f1_score(y_test, y_pred, labels=[0], average=None)[0]
-    
-    precision_medium = precision_score(y_test, y_pred, labels=[1], average=None)[0]
-    recall_medium = recall_score(y_test, y_pred, labels=[1], average=None)[0]
-    f1_medium = f1_score(y_test, y_pred, labels=[1], average=None)[0]
-    
-    precision_high = precision_score(y_test, y_pred, labels=[2], average=None)[0]
-    recall_high = recall_score(y_test, y_pred, labels=[2], average=None)[0]
-    f1_high = f1_score(y_test, y_pred, labels=[2], average=None)[0]
-    
-    # Создание таблицы для метрик
+    # ROC-AUC
+    roc_auc_train = auc(*roc_curve(y_train, y_pred_proba_train[:, 1], pos_label=1)[:2])
+    roc_auc_test = auc(*roc_curve(y_test, y_pred_proba_test[:, 1], pos_label=1)[:2])
+    st.write(f"**ROC AUC на обучающем наборе:** {roc_auc_train:.2f}")
+    st.write(f"**ROC AUC на тестовом наборе:** {roc_auc_test:.2f}")
+
+    # Метрики Precision, Recall, F1-Score
+    precision = precision_score(y_test, y_pred_test, average=None)
+    recall = recall_score(y_test, y_pred_test, average=None)
+    f1 = f1_score(y_test, y_pred_test, average=None)
+
     metrics_df = pd.DataFrame({
-        'Прецизионность (Precision)': [precision_low, precision_medium, precision_high],
-        'Полнота (Recall)': [recall_low, recall_medium, recall_high],
-        'F1-Оценка': [f1_low, f1_medium, f1_high]
+        'Прецизионность (Precision)': precision,
+        'Полнота (Recall)': recall,
+        'F1-Оценка': f1
     }, index=['Low', 'Medium', 'High'])
 
     st.write("Метрики для каждого класса:")
@@ -192,23 +187,17 @@ if st.button("Метрики"):
 
     # Матрица ошибок
     st.subheader("Confusion Matrix:")
-    cm = confusion_matrix(y_test, y_pred)
+    cm = confusion_matrix(y_test, y_pred_test)
     fig, ax = plt.subplots()
-    sns.heatmap(cm, annot=True, fmt='d', cmap="Blues", xticklabels=list(class_mapping.values()), yticklabels=list(class_mapping.values()))
+    sns.heatmap(cm, annot=True, fmt='d', cmap="Blues", xticklabels=['Low', 'Medium', 'High'], yticklabels=['Low', 'Medium', 'High'])
     ax.set_title('Матрица ошибок')
     st.pyplot(fig)
 
-    # Проверка на переобучение
-    if accuracy_train - accuracy_test > 0.1:
-        st.warning("Модель может быть переобучена, так как точность на обучающем наборе значительно выше, чем на тестовом.")
-    else:
-        st.success("Модель не переобучена, точности на обучающем и тестовом наборах схожи.")
-
 # Визуализация важности признаков для дерева решений или случайного леса
-if model_choice in ["Decision Tree", "Random Forest", 'Logistic Regression']:
+if model_choice in ["Decision Tree", "Random Forest"]:
     importance = model.feature_importances_
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.barh(X_raw.columns, importance)
+    ax.barh(X_raw.columns, importance, color="skyblue")
     ax.set_xlabel('Важность признаков')
     ax.set_title(f'Важность признаков для {model_choice}')
     st.pyplot(fig)
