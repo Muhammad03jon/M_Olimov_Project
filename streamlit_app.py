@@ -141,59 +141,59 @@ if st.button("Предсказать"):
         st.write(f"Тариф {class_mapping[i]}: {prob:.2f}")
 
 # Отображение метрик
-if st.button("Метрики"):
-    y_pred_train = best_model.predict(X_train_scaled)
-    y_pred_test = best_model.predict(X_test_scaled)
 
-    y_pred_proba_train = best_model.predict_proba(X_train_scaled)
-    y_pred_proba_test = best_model.predict_proba(X_test_scaled)
+y_pred_train = best_model.predict(X_train_scaled)
+y_pred_test = best_model.predict(X_test_scaled)
 
-    st.subheader("📊 Метрики модели")
+y_pred_proba_train = best_model.predict_proba(X_train_scaled)
+y_pred_proba_test = best_model.predict_proba(X_test_scaled)
 
-    # Accuracy для обучения и теста
-    accuracy_train = best_model.score(X_train_scaled, y_train)
-    accuracy_test = best_model.score(X_test_scaled, y_test)
-    st.write(f"**Точность (Accuracy) на обучающем наборе:** {accuracy_train:.2f}")
-    st.write(f"**Точность (Accuracy) на тестовом наборе:** {accuracy_test:.2f}")
+st.subheader("📊 Метрики модели")
 
-    # ROC-AUC
-    roc_auc_train = roc_auc_score(y_train, y_pred_proba_train, multi_class="ovr")
-    roc_auc_test = roc_auc_score(y_test, y_pred_proba_test, multi_class="ovr")
+# Accuracy для обучения и теста
+accuracy_train = best_model.score(X_train_scaled, y_train)
+accuracy_test = best_model.score(X_test_scaled, y_test)
+st.write(f"**Точность (Accuracy) на обучающем наборе:** {accuracy_train:.2f}")
+st.write(f"**Точность (Accuracy) на тестовом наборе:** {accuracy_test:.2f}")
 
-    st.write(f"**ROC AUC на обучающем наборе:** {roc_auc_train:.2f}")
-    st.write(f"**ROC AUC на тестовом наборе:** {roc_auc_test:.2f}")
+# ROC-AUC
+roc_auc_train = roc_auc_score(y_train, y_pred_proba_train, multi_class="ovr")
+roc_auc_test = roc_auc_score(y_test, y_pred_proba_test, multi_class="ovr")
 
-    # Метрики Precision, Recall, F1-Score
-    precision = precision_score(y_test, y_pred_test, average='macro')
-    recall = recall_score(y_test, y_pred_test, average='macro')
-    f1 = f1_score(y_test, y_pred_test, average='macro')
+st.write(f"**ROC AUC на обучающем наборе:** {roc_auc_train:.2f}")
+st.write(f"**ROC AUC на тестовом наборе:** {roc_auc_test:.2f}")
 
-    metrics_df = pd.DataFrame({
-        'Прецизионность (Precision)': precision,
-        'Полнота (Recall)': recall,
-        'F1-Оценка': f1
-    }, index=['Low', 'Medium', 'High'])
+# Метрики Precision, Recall, F1-Score
+precision = precision_score(y_test, y_pred_test, average='macro')
+recall = recall_score(y_test, y_pred_test, average='macro')
+f1 = f1_score(y_test, y_pred_test, average='macro')
 
-    st.write("Метрики для каждого класса:")
-    st.dataframe(metrics_df)
+metrics_df = pd.DataFrame({
+    'Прецизионность (Precision)': precision,
+    'Полнота (Recall)': recall,
+    'F1-Оценка': f1
+}, index=['Low', 'Medium', 'High'])
 
-    # Матрица ошибок
-    st.subheader("Confusion Matrix:")
-    cm = confusion_matrix(y_test, y_pred_test)
-    fig, ax = plt.subplots()
-    sns.heatmap(cm, annot=True, fmt='d', cmap="Blues", xticklabels=['Low', 'Medium', 'High'], yticklabels=['Low', 'Medium', 'High'])
-    ax.set_title('Матрица ошибок')
-    st.pyplot(fig)
+st.write("Метрики для каждого класса:")
+st.dataframe(metrics_df)
 
- # ROC-кривые для каждого класса
-    st.subheader("ROC-кривые для каждого класса")
-    fig, ax = plt.subplots()
-    for i in range(3):
-        fpr, tpr, _ = roc_curve(y_test == i, y_pred_proba_test[:, i])
-        ax.plot(fpr, tpr, label=f"{class_mapping[i]}")
-    ax.plot([0, 1], [0, 1], linestyle='--', color='gray')
-    ax.set_xlabel("False Positive Rate")
-    ax.set_ylabel("True Positive Rate")
-    ax.set_title("ROC-кривые")
-    ax.legend()
-    st.pyplot(fig)
+# Матрица ошибок
+st.subheader("Confusion Matrix:")
+cm = confusion_matrix(y_test, y_pred_test)
+fig, ax = plt.subplots()
+sns.heatmap(cm, annot=True, fmt='d', cmap="Blues", xticklabels=['Low', 'Medium', 'High'], yticklabels=['Low', 'Medium', 'High'])
+ax.set_title('Матрица ошибок')
+st.pyplot(fig)
+
+# ROC-кривые для каждого класса
+st.subheader("ROC-кривые для каждого класса")
+fig, ax = plt.subplots()
+for i in range(3):
+    fpr, tpr, _ = roc_curve(y_test == i, y_pred_proba_test[:, i])
+    ax.plot(fpr, tpr, label=f"{class_mapping[i]}")
+ax.plot([0, 1], [0, 1], linestyle='--', color='gray')
+ax.set_xlabel("False Positive Rate")
+ax.set_ylabel("True Positive Rate")
+ax.set_title("ROC-кривые")
+ax.legend()
+st.pyplot(fig)
