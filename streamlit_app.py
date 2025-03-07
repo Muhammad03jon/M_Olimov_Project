@@ -34,41 +34,45 @@ with st.expander('Исходные данные'):
 # Преобразуем целевую переменную для обучения
 df['ideal_plan'] = df['ideal_plan'].map({'Low': 0, 'Medium': 1, 'High': 2})
 
-# Расчет корреляции перед удалением признаков
-correlation_matrix = X_raw.corr()
-
-# График корреляции до удаления
-st.subheader("График корреляции перед удалением признаков")
-fig, ax = plt.subplots(figsize=(10, 8))
-sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
-st.pyplot(fig)
-
-# Удаляем признаки, которые имеют высокую корреляцию
-X_raw = X_raw.drop(['OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies'], axis=1)
-
-# Пересчитываем корреляцию после удаления признаков
-correlation_matrix_after = X_raw.corr()
-
-# График корреляции после удаления
-st.subheader("График корреляции после удаления признаков")
-fig, ax = plt.subplots(figsize=(10, 8))
-sns.heatmap(correlation_matrix_after, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
-st.pyplot(fig)
-
-# Разделение данных
-X_train, X_test, y_train, y_test = train_test_split(X_raw, df['ideal_plan'], test_size=0.2, random_state=42)
-
 # Кодирование категориальных признаков
 categorical_features = X_raw.select_dtypes(include=['object']).columns
 encoder = TargetEncoder(cols=categorical_features)
-X_train = encoder.fit_transform(X_train, y_train)
-X_test = encoder.transform(X_test)
+X_raw_encoded = encoder.fit_transform(X_raw, y_raw)
+
+# Корреляция после кодирования
+correlation_matrix_after_encoding = X_raw_encoded.corr()
+
+# График корреляции после кодирования
+st.subheader("График корреляции после кодирования")
+fig, ax = plt.subplots(figsize=(10, 8))
+sns.heatmap(correlation_matrix_after_encoding, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
+st.pyplot(fig)
+
+# Удаляем признаки, которые имеют высокую корреляцию
+X_raw_encoded = X_raw_encoded.drop(['OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies'], axis=1)
+
+# Пересчитываем корреляцию после удаления признаков
+correlation_matrix_after_removal = X_raw_encoded.corr()
+
+# График корреляции после удаления признаков
+st.subheader("График корреляции после удаления признаков")
+fig, ax = plt.subplots(figsize=(10, 8))
+sns.heatmap(correlation_matrix_after_removal, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
+st.pyplot(fig)
+
+# Разделение данных
+X_train, X_test, y_train, y_test = train_test_split(X_raw_encoded, df['ideal_plan'], test_size=0.2, random_state=42)
 
 # Стандартизация данных
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
+# Преобразование категориальных признаков в числа
+X_train_scaled = pd.DataFrame(X_train_scaled, columns=X_raw_encoded.columns)
+X_test_scaled = pd.DataFrame(X_test_scaled, columns=X_raw_encoded.columns)
+
+# Oversampling для балансировки данных
 oversampler = RandomOverSampler(random_state=42)
 X_train_scaled, y_train = oversampler.fit_resample(X_train_scaled, y_train)
 
