@@ -184,3 +184,16 @@ if st.button("Метрики"):
     sns.heatmap(cm, annot=True, fmt='d', cmap="Blues", xticklabels=['Low', 'Medium', 'High'], yticklabels=['Low', 'Medium', 'High'])
     ax.set_title('Матрица ошибок')
     st.pyplot(fig)
+
+ # ROC-кривые для каждого класса
+    st.subheader("ROC-кривые для каждого класса")
+    fig, ax = plt.subplots()
+    for i in range(3):
+        fpr, tpr, _ = roc_curve(y_test == i, y_pred_proba_test[:, i])
+        ax.plot(fpr, tpr, label=f"{class_mapping[i]}")
+    ax.plot([0, 1], [0, 1], linestyle='--', color='gray')
+    ax.set_xlabel("False Positive Rate")
+    ax.set_ylabel("True Positive Rate")
+    ax.set_title("ROC-кривые")
+    ax.legend()
+    st.pyplot(fig)
