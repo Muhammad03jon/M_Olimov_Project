@@ -9,6 +9,7 @@ from category_encoders import TargetEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import GridSearchCV
+from imblearn.over_sampling import SMOTE
 
 st.title('📞 Предсказание идеального тарифа для клиента')
 
@@ -55,29 +56,32 @@ scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
+smote = SMOTE(random_state=42)
+X_train_scaled, y_train = smote.fit_resample(X_train_scaled, y_train)
+
 # Выбор модели и гиперпараметров для Random Forest
 param_grid = {
     "n_estimators": [50, 100, 200],
-    "max_depth": [5, 10, 15],
+    "max_depth": [3, 5, 10],
     "min_samples_split": [2, 5, 10],
     "min_samples_leaf": [1, 3, 5]
 }
 model = RandomForestClassifier(class_weight='balanced', random_state=42)
 
-# Запуск GridSearchCV
+# GridSearchCV
 grid_search = GridSearchCV(model, param_grid, cv=5, scoring="accuracy", n_jobs=-1)
 grid_search.fit(X_train_scaled, y_train)
 
-# Берем лучшую модель
+# лучший модель
 best_model = grid_search.best_estimator_
 
-# Выводим лучшие параметры
+# Лучшие параметры
 st.write("**Лучшие параметры для Random Forest:**", grid_search.best_params_)
 
 # Обучаем модель с лучшими параметрами
 best_model.fit(X_train_scaled, y_train)
 
-# Ввод пользовательских данных
+# Ввод данных
 st.sidebar.header("Введите данные клиента")
 
 # Пол пользователя
@@ -113,7 +117,7 @@ PaperlessBilling = st.sidebar.radio("Безбумажный биллинг?", ["
 # Способ оплаты
 PaymentMethod = st.sidebar.selectbox("Способ оплаты:", ["Electronic check", "Mailed check", "Bank transfer (automatic)", "Credit card (automatic)"])
 
-# Вывод введенных данных
+# Вывод данных
 st.subheader("📝 Введенные данные клиента")
 input_data = {
     "gender": gender,
