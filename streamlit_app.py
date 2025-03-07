@@ -34,45 +34,20 @@ with st.expander('Исходные данные'):
 # Преобразуем целевую переменную для обучения
 df['ideal_plan'] = df['ideal_plan'].map({'Low': 0, 'Medium': 1, 'High': 2})
 
+# Разделение данных
+X_train, X_test, y_train, y_test = train_test_split(X_raw, df['ideal_plan'], test_size=0.2, random_state=42)
+
 # Кодирование категориальных признаков
 categorical_features = X_raw.select_dtypes(include=['object']).columns
 encoder = TargetEncoder(cols=categorical_features)
-X_raw_encoded = encoder.fit_transform(X_raw, y_raw)
-
-# Корреляция после кодирования
-correlation_matrix_after_encoding = X_raw_encoded.corr()
-
-# График корреляции после кодирования
-st.subheader("График корреляции после кодирования")
-fig, ax = plt.subplots(figsize=(10, 8))
-sns.heatmap(correlation_matrix_after_encoding, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
-st.pyplot(fig)
-
-# Удаляем признаки, которые имеют высокую корреляцию
-X_raw_encoded = X_raw_encoded.drop(['OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies'], axis=1)
-
-# Пересчитываем корреляцию после удаления признаков
-correlation_matrix_after_removal = X_raw_encoded.corr()
-
-# График корреляции после удаления признаков
-st.subheader("График корреляции после удаления признаков")
-fig, ax = plt.subplots(figsize=(10, 8))
-sns.heatmap(correlation_matrix_after_removal, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
-st.pyplot(fig)
-
-# Разделение данных
-X_train, X_test, y_train, y_test = train_test_split(X_raw_encoded, df['ideal_plan'], test_size=0.2, random_state=42)
+X_train = encoder.fit_transform(X_train, y_train)
+X_test = encoder.transform(X_test)
 
 # Стандартизация данных
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-# Преобразование категориальных признаков в числа
-X_train_scaled = pd.DataFrame(X_train_scaled, columns=X_raw_encoded.columns)
-X_test_scaled = pd.DataFrame(X_test_scaled, columns=X_raw_encoded.columns)
-
-# Oversampling для балансировки данных
 oversampler = RandomOverSampler(random_state=42)
 X_train_scaled, y_train = oversampler.fit_resample(X_train_scaled, y_train)
 
@@ -109,8 +84,13 @@ tenure = st.sidebar.slider("Стаж (месяцы):", 0, 72, 12)
 PhoneService = st.sidebar.radio("Подключена телефонная связь?", ["Yes", "No"])
 MultipleLines = st.sidebar.radio("Несколько линий?", ["Yes", "No phone service", "No"])
 
-# Интернет-услуги 
+# Интернет-услуги
 OnlineSecurity = st.sidebar.radio("Защита в интернете?", ["Yes", "No", "No internet service"])
+OnlineBackup = st.sidebar.radio("Резервное копирование?", ["Yes", "No", "No internet service"])
+DeviceProtection = st.sidebar.radio("Защита устройств?", ["Yes", "No", "No internet service"])
+TechSupport = st.sidebar.radio("Техподдержка?", ["Yes", "No", "No internet service"])
+StreamingTV = st.sidebar.radio("Стриминг ТВ?", ["Yes", "No", "No internet service"])
+StreamingMovies = st.sidebar.radio("Стриминг фильмов?", ["Yes", "No", "No internet service"])
 
 # Контракт
 Contract = st.sidebar.selectbox("Тип контракта:", ["Month-to-month", "One year", "Two year"])
@@ -119,7 +99,8 @@ PaperlessBilling = st.sidebar.radio("Безбумажный биллинг?", ["
 # Способ оплаты
 PaymentMethod = st.sidebar.selectbox("Способ оплаты:", ["Electronic check", "Mailed check", "Bank transfer (automatic)", "Credit card (automatic)"])
 
-# Удаляем те же признаки, что и в обучающей выборке
+# Вывод данных
+st.subheader("📝 Введенные данные клиента")
 input_data = {
     "gender": gender,
     "SeniorCitizen": SeniorCitizen,
@@ -128,31 +109,33 @@ input_data = {
     "tenure": tenure,
     "PhoneService": PhoneService,
     "MultipleLines": MultipleLines,
-    "OnlineSecurity":OnlineSecurity,
+    "OnlineSecurity": OnlineSecurity,
+    "OnlineBackup": OnlineBackup,
+    "DeviceProtection": DeviceProtection,
+    "TechSupport": TechSupport,
+    "StreamingTV": StreamingTV,
+    "StreamingMovies": StreamingMovies,
     "Contract": Contract,
     "PaperlessBilling": PaperlessBilling,
     "PaymentMethod": PaymentMethod
-    # Удалены признаки OnlineSecurity, OnlineBackup, DeviceProtection, TechSupport, StreamingTV, StreamingMovies
 }
-
 input_df = pd.DataFrame([input_data])
-
-# Преобразуем входные данные так же, как и тренировочные
-input_df[categorical_features] = encoder.transform(input_df[categorical_features])
-
-# Стандартизируем данные
-input_df_scaled = scaler.transform(input_df)
+st.dataframe(input_df)
 
 # Предсказание тарифа
 if st.button("Предсказать"):
-    prediction = best_model.predict(input_df_scaled)[0]
+    input_df = pd.DataFrame([input_data])
+    input_df = encoder.transform(input_df)
+    input_df = scaler.transform(input_df)
+    
+    prediction = best_model.predict(input_df)[0]
     predicted_class = class_mapping[prediction]  # Получаем строковое значение из числа
 
     st.subheader("🔮 Идеальный тариф: ")
     st.write(predicted_class)
 
     # Если модель поддерживает вероятности для каждого класса
-    prediction_prob = best_model.predict_proba(input_df_scaled)[0]
+    prediction_prob = best_model.predict_proba(input_df)[0]
     st.write("Предсказанные вероятности для каждого тарифа:")
     for i, prob in enumerate(prediction_prob):
         st.write(f"Тариф {class_mapping[i]}: {prob:.2f}")
