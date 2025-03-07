@@ -26,6 +26,11 @@ df['ideal_plan'] = df['ideal_plan'].map({'Low': 0, 'Medium': 1, 'High': 2})
 X_raw = df.drop('ideal_plan', axis=1)
 y_raw = df['ideal_plan']
 
+# Кодирование категориальных признаков
+categorical_features = X_raw.select_dtypes(include=['object']).columns
+encoder = TargetEncoder(cols=categorical_features)
+X_raw = encoder.fit_transform(X_raw, y_raw)
+
 # Вывод корреляции всех признаков
 st.subheader("🔗 Корреляция признаков")
 correlation = X_raw.corr()
@@ -46,12 +51,6 @@ st.pyplot(fig)
 
 # Разделение на обучающую и тестовую выборки
 X_train, X_test, y_train, y_test = train_test_split(X_raw, y_raw, test_size=0.2, random_state=42)
-
-# Кодирование категориальных признаков
-categorical_features = X_train.select_dtypes(include=['object']).columns
-encoder = TargetEncoder(cols=categorical_features)
-X_train = encoder.fit_transform(X_train, y_train)
-X_test = encoder.transform(X_test)
 
 # Стандартизация данных
 scaler = StandardScaler()
