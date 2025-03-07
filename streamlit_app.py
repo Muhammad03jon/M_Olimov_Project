@@ -9,7 +9,7 @@ from category_encoders import TargetEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import GridSearchCV
-from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import RandomOverSampler
 
 st.title('📞 Предсказание идеального тарифа для клиента')
 
@@ -56,12 +56,12 @@ scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-smote = SMOTE(random_state=42)
-X_train_scaled, y_train = smote.fit_resample(X_train_scaled, y_train)
+oversampler = RandomOverSampler(random_state=42)
+X_train_scaled, y_train = oversampler.fit_resample(X_train_scaled, y_train)
 
 # Выбор модели и гиперпараметров для Random Forest
 param_grid = {
-    "n_estimators": [50, 100, 200],
+    "n_estimators": [50, 80],
     "max_depth": [3, 5, 10],
     "min_samples_split": [2, 5, 10],
     "min_samples_leaf": [1, 3, 5]
