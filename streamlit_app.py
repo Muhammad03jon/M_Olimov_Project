@@ -10,7 +10,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, accuracy_score, precision_score, recall_score, f1_score
-import joblib
+from sklearn.model_selection import GridSearchCV
 
 st.title('📞 Предсказание идеального тарифа для клиента')
 
