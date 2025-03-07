@@ -65,7 +65,7 @@ with st.sidebar:
     if model_choice == "Logistic Regression":
         model = LogisticRegression(multi_class='multinomial', solver='lbfgs', penalty='l2')
     elif model_choice == "Decision Tree":
-        model = DecisionTreeClassifier(class_weight='balanced', max_depth=5, min_samples_split=10, min_samples_leaf=5)
+        model = DecisionTreeClassifier(class_weight='balanced', max_depth=10, min_samples_split=10, min_samples_leaf=5)
     elif model_choice == "Random Forest":
         model = RandomForestClassifier(n_estimators=100, max_depth=10, min_samples_split=10, min_samples_leaf=5, random_state=42)
     
