@@ -62,7 +62,7 @@ param_grid = {
     "min_samples_split": [2, 5, 10],
     "min_samples_leaf": [1, 3, 5]
 }
-model = RandomForestClassifier(random_state=42)
+model = RandomForestClassifier(class_weight='balanced', random_state=42)
 
 # Запуск GridSearchCV
 grid_search = GridSearchCV(model, param_grid, cv=5, scoring="accuracy", n_jobs=-1)
