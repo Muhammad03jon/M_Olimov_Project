@@ -55,7 +55,7 @@ X_train_scaled, y_train = oversampler.fit_resample(X_train_scaled, y_train)
 
 best_model = RandomForestClassifier(
     class_weight='balanced',
-    max_depth=10, 
+    max_depth=5, 
     min_samples_leaf=3, 
     min_samples_split=10, 
     n_estimators=50,
