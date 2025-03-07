@@ -63,6 +63,12 @@ best_model = RandomForestClassifier(
 # Обучаем модель
 best_model.fit(X_train_scaled, y_train)
 
+st.subheader("🔗 Корреляция признаков")
+X_train_corr = pd.DataFrame(X_train_scaled, columns=X_train.columns)  # Восстановим названия признаков
+fig, ax = plt.subplots(figsize=(10, 8))  # Увеличим размер графика
+sns.heatmap(X_train_corr.corr(), annot=True, fmt='.2f', cmap='coolwarm', ax=ax, linewidths=0.5)
+st.pyplot(fig)
+
 # Вывод корреляционной матрицы
 st.subheader("🔗 Корреляция признаков")
 fig, ax = plt.subplots()
