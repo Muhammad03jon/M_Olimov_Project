@@ -166,15 +166,16 @@ if st.button("Метрики"):
     st.write(f"**Точность (Accuracy) на тестовом наборе:** {accuracy_test:.2f}")
 
     # ROC-AUC
-    roc_auc_train = auc(*roc_curve(y_train, y_pred_proba_train[:, 1], pos_label=1)[:2])
-    roc_auc_test = auc(*roc_curve(y_test, y_pred_proba_test[:, 1], pos_label=1)[:2])
+    roc_auc_train = roc_auc_score(y_train, y_pred_proba_train, multi_class="ovr")
+    roc_auc_test = roc_auc_score(y_test, y_pred_proba_test, multi_class="ovr")
+
     st.write(f"**ROC AUC на обучающем наборе:** {roc_auc_train:.2f}")
     st.write(f"**ROC AUC на тестовом наборе:** {roc_auc_test:.2f}")
 
     # Метрики Precision, Recall, F1-Score
-    precision = precision_score(y_test, y_pred_test, average=None)
-    recall = recall_score(y_test, y_pred_test, average=None)
-    f1 = f1_score(y_test, y_pred_test, average=None)
+    precision = precision_score(y_test, y_pred_test, average='macro')
+    recall = recall_score(y_test, y_pred_test, average='macro')
+    f1 = f1_score(y_test, y_pred_test, average='macro')
 
     metrics_df = pd.DataFrame({
         'Прецизионность (Precision)': precision,
