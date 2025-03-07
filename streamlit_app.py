@@ -227,11 +227,4 @@ if st.button("Метрики"):
     ax.set_title('Матрица ошибок')
     st.pyplot(fig)
 
-# Визуализация важности признаков для дерева решений или случайного леса
-if model_choice in ["Decision Tree", "Random Forest"]:
-    importance = model.feature_importances_
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.barh(X_raw.columns, importance, color="skyblue")
-    ax.set_xlabel('Важность признаков')
-    ax.set_title(f'Важность признаков для {model_choice}')
-    st.pyplot(fig)
+
