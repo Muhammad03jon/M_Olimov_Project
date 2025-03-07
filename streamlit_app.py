@@ -125,3 +125,31 @@ ax.set_ylabel("True Positive Rate")
 ax.set_title("ROC-кривые")
 ax.legend()
 st.pyplot(fig)
+
+# Ввод новых данных
+st.subheader("🔧 Ввод новых данных для предсказания")
+
+# Пример полей ввода для новых данных
+new_data = {}
+
+# Перечень признаков (для ввода данных пользователем)
+columns = X_raw.columns
+for col in columns:
+    if X_raw[col].dtype == 'object':
+        new_data[col] = st.selectbox(col, options=df[col].unique())
+    else:
+        new_data[col] = st.number_input(col, value=0.0)
+
+# Преобразуем данные в DataFrame
+new_data_df = pd.DataFrame([new_data])
+
+# Кодирование новых данных
+new_data_encoded = encoder.transform(new_data_df)
+
+# Стандартизируем новые данные
+new_data_scaled = scaler.transform(new_data_encoded)
+
+# Предсказание на новых данных
+if st.button("Предсказать идеальный тариф"):
+    prediction = best_model.predict(new_data_scaled)
+    st.write(f"Предсказанный идеальный тариф: {class_mapping[prediction[0]]}")
