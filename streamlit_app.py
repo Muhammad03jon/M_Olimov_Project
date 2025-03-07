@@ -25,27 +25,44 @@ df['ideal_plan'] = df['ideal_plan'].map({'Low': 0, 'Medium': 1, 'High': 2})
 # Разделение данных
 X_raw = df.drop('ideal_plan', axis=1)
 y_raw = df['ideal_plan']
+
+# Вывод корреляции всех признаков
+st.subheader("🔗 Корреляция признаков")
+correlation = X_raw.corr()
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.heatmap(correlation, annot=True, fmt='.2f', cmap='coolwarm', ax=ax)
+st.pyplot(fig)
+
+# Удаляем сильно коррелирующие признаки (к примеру, 'OnlineSecurity', 'OnlineBackup', и т.д.)
+drop_cols = ['OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'StreamingTV', 'StreamingMovies']
+X_raw = X_raw.drop(columns=drop_cols)
+
+# Выводим обновленную корреляцию после удаления колонок
+st.subheader("🔗 Обновленная корреляция признаков")
+correlation_updated = X_raw.corr()
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.heatmap(correlation_updated, annot=True, fmt='.2f', cmap='coolwarm', ax=ax)
+st.pyplot(fig)
+
+# Разделение на обучающую и тестовую выборки
 X_train, X_test, y_train, y_test = train_test_split(X_raw, y_raw, test_size=0.2, random_state=42)
 
 # Кодирование категориальных признаков
-categorical_features = X_raw.select_dtypes(include=['object']).columns
+categorical_features = X_train.select_dtypes(include=['object']).columns
 encoder = TargetEncoder(cols=categorical_features)
 X_train = encoder.fit_transform(X_train, y_train)
 X_test = encoder.transform(X_test)
-
-# Удаляем сильно коррелирующие признаки, оставляем только TechSupport
-drop_cols = ['OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'StreamingTV', 'StreamingMovies']
-X_train = X_train.drop(columns=drop_cols)
-X_test = X_test.drop(columns=drop_cols)
 
 # Стандартизация данных
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
+# Обработка дисбаланса классов
 oversampler = RandomOverSampler(random_state=42)
 X_train_scaled, y_train = oversampler.fit_resample(X_train_scaled, y_train)
 
+# Обучаем модель RandomForest
 best_model = RandomForestClassifier(
     class_weight='balanced',
     max_depth=6, 
@@ -108,10 +125,4 @@ ax.set_xlabel("False Positive Rate")
 ax.set_ylabel("True Positive Rate")
 ax.set_title("ROC-кривые")
 ax.legend()
-st.pyplot(fig)
-
-# Корреляционная матрица
-st.subheader("🔗 Корреляция признаков")
-fig, ax = plt.subplots(figsize=(10, 6))
-sns.heatmap(pd.DataFrame(X_train_scaled).corr(), annot=True, fmt='.2f', cmap='coolwarm', ax=ax)
 st.pyplot(fig)
