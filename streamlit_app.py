@@ -33,6 +33,7 @@ with st.expander('Исходные данные'):
 
 # Преобразуем целевую переменную для обучения
 df['ideal_plan'] = df['ideal_plan'].map({'Low': 0, 'Medium': 1, 'High': 2})
+X_raw = X_raw.drop(columns=['OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies'])
 
 # Разделение данных
 X_train, X_test, y_train, y_test = train_test_split(X_raw, df['ideal_plan'], test_size=0.2, random_state=42)
@@ -86,11 +87,6 @@ MultipleLines = st.sidebar.radio("Несколько линий?", ["Yes", "No p
 
 # Интернет-услуги
 OnlineSecurity = st.sidebar.radio("Защита в интернете?", ["Yes", "No", "No internet service"])
-OnlineBackup = st.sidebar.radio("Резервное копирование?", ["Yes", "No", "No internet service"])
-DeviceProtection = st.sidebar.radio("Защита устройств?", ["Yes", "No", "No internet service"])
-TechSupport = st.sidebar.radio("Техподдержка?", ["Yes", "No", "No internet service"])
-StreamingTV = st.sidebar.radio("Стриминг ТВ?", ["Yes", "No", "No internet service"])
-StreamingMovies = st.sidebar.radio("Стриминг фильмов?", ["Yes", "No", "No internet service"])
 
 # Контракт
 Contract = st.sidebar.selectbox("Тип контракта:", ["Month-to-month", "One year", "Two year"])
@@ -110,11 +106,6 @@ input_data = {
     "PhoneService": PhoneService,
     "MultipleLines": MultipleLines,
     "OnlineSecurity": OnlineSecurity,
-    "OnlineBackup": OnlineBackup,
-    "DeviceProtection": DeviceProtection,
-    "TechSupport": TechSupport,
-    "StreamingTV": StreamingTV,
-    "StreamingMovies": StreamingMovies,
     "Contract": Contract,
     "PaperlessBilling": PaperlessBilling,
     "PaymentMethod": PaymentMethod
