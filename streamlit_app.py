@@ -15,6 +15,7 @@ st.title('📞 Предсказание идеального тарифа для
 # Загрузка данных
 data_url = "https://raw.githubusercontent.com/Muhammad03jon/M_Olimov_Project/refs/heads/master/data.csv"
 df = pd.read_csv(data_url)
+df = df.drop(columns=['OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies'])
 
 # Словарь для преобразования числовых значений в соответствующие классы
 class_mapping = {0: 'Low', 1: 'Medium', 2: 'High'}
@@ -33,7 +34,6 @@ with st.expander('Исходные данные'):
 
 # Преобразуем целевую переменную для обучения
 df['ideal_plan'] = df['ideal_plan'].map({'Low': 0, 'Medium': 1, 'High': 2})
-X_raw = X_raw.drop(columns=['OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies'])
 
 # Разделение данных
 X_train, X_test, y_train, y_test = train_test_split(X_raw, df['ideal_plan'], test_size=0.2, random_state=42)
