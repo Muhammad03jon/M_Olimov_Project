@@ -58,7 +58,7 @@ best_model = RandomForestClassifier(
     max_depth=5, 
     min_samples_leaf=3, 
     min_samples_split=10, 
-    n_estimators=30,
+    n_estimators=50,
     random_state=42
 )
 
