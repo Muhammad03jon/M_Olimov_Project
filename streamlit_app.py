@@ -62,14 +62,47 @@ with st.sidebar:
     st.header("Выбор модели")
     model_choice = st.selectbox("Выберите модель:", ["Logistic Regression", "Decision Tree", "Random Forest"])
     
-    if model_choice == "Logistic Regression":
-        model = LogisticRegression(multi_class='multinomial', solver='lbfgs', penalty='l2')
-    elif model_choice == "Decision Tree":
-        model = DecisionTreeClassifier(class_weight='balanced', max_depth=10, min_samples_split=10, min_samples_leaf=5)
-    elif model_choice == "Random Forest":
-        model = RandomForestClassifier(n_estimators=100, max_depth=10, min_samples_split=10, min_samples_leaf=5, random_state=42)
+    # Определение сетки параметров
+    param_grid = {}
     
-    model.fit(X_train_scaled, y_train)
+    if model_choice == "Logistic Regression":
+        param_grid = {
+            "C": [0.01, 0.1, 1, 10],
+            "solver": ["lbfgs", "saga"],
+            "max_iter": [100, 300, 500]
+        }
+        model = LogisticRegression(multi_class='multinomial', penalty='l2')
+    
+    elif model_choice == "Decision Tree":
+        param_grid = {
+            "max_depth": [5, 10, 15],
+            "min_samples_split": [2, 5, 10],
+            "min_samples_leaf": [1, 3, 5],
+            "class_weight": ["balanced", None]
+        }
+        model = DecisionTreeClassifier()
+    
+    elif model_choice == "Random Forest":
+        param_grid = {
+            "n_estimators": [50, 100, 200],
+            "max_depth": [5, 10, 15],
+            "min_samples_split": [2, 5, 10],
+            "min_samples_leaf": [1, 3, 5]
+        }
+        model = RandomForestClassifier(random_state=42)
+    
+    # Запуск GridSearchCV
+    grid_search = GridSearchCV(model, param_grid, cv=5, scoring="accuracy", n_jobs=-1)
+    grid_search.fit(X_train_scaled, y_train)
+    
+    # Берем лучшую модель
+    best_model = grid_search.best_estimator_
+    
+    # Выводим лучшие параметры
+    st.write(f"**Лучшие параметры для {model_choice}:**", grid_search.best_params_)
+    
+    # Обучаем модель с лучшими параметрами
+    best_model.fit(X_train_scaled, y_train)
 
 # Ввод пользовательских данных
 st.sidebar.header("Введите данные клиента")
@@ -136,7 +169,7 @@ if st.button("Предсказать"):
     input_df = encoder.transform(input_df)
     input_df = scaler.transform(input_df)
     
-    prediction = model.predict(input_df)[0]
+    prediction = best_model.predict(input_df)[0]
     predicted_class = class_mapping[prediction]  # Получаем строковое значение из числа
 
     st.subheader("🔮 Идеальный тариф: ")
@@ -144,24 +177,24 @@ if st.button("Предсказать"):
 
     # Если модель поддерживает вероятности для каждого класса
     if model_choice in ["Logistic Regression", "Random Forest", "Decision Tree"]:
-        prediction_prob = model.predict_proba(input_df)[0]
+        prediction_prob = best_model.predict_proba(input_df)[0]
         st.write("Предсказанные вероятности для каждого тарифа:")
         for i, prob in enumerate(prediction_prob):
             st.write(f"Тариф {class_mapping[i]}: {prob:.2f}")
 
 # Отображение метрик
 if st.button("Метрики"):
-    y_pred_train = model.predict(X_train_scaled)
-    y_pred_test = model.predict(X_test_scaled)
+    y_pred_train = best_model.predict(X_train_scaled)
+    y_pred_test = best_model.predict(X_test_scaled)
 
-    y_pred_proba_train = model.predict_proba(X_train_scaled)
-    y_pred_proba_test = model.predict_proba(X_test_scaled)
+    y_pred_proba_train = best_model.predict_proba(X_train_scaled)
+    y_pred_proba_test = best_model.predict_proba(X_test_scaled)
 
     st.subheader("📊 Метрики модели")
 
     # Accuracy для обучения и теста
-    accuracy_train = model.score(X_train_scaled, y_train)
-    accuracy_test = model.score(X_test_scaled, y_test)
+    accuracy_train = best_model.score(X_train_scaled, y_train)
+    accuracy_test = best_model.score(X_test_scaled, y_test)
     st.write(f"**Точность (Accuracy) на обучающем наборе:** {accuracy_train:.2f}")
     st.write(f"**Точность (Accuracy) на тестовом наборе:** {accuracy_test:.2f}")
 
